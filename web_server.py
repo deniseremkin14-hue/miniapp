@@ -1,6 +1,7 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import tempfile
 import shutil
@@ -8,6 +9,15 @@ import subprocess
 from typing import List
 
 app = FastAPI()
+
+# Добавляем CORS для GitHub Pages
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["https://deniseremkin14-hue.github.io"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["*"],
+)
 
 # Подключаем статические файлы (Mini App)
 app.mount("/static", StaticFiles(directory="."), name="static")
