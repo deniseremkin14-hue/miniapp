@@ -88,3 +88,6 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
+
+# Добавляем для совместимости с Render
+app_fastapi = app
