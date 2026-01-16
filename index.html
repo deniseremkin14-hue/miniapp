@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Видео Нарезка</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+</head>
+<body>
+    <!-- CAPTCHA ЭКРАН -->
+    <div id="captcha-screen" class="screen active">
+        <div class="container">
+            <div class="captcha-container">
+                <h2>Подтверждение</h2>
+                <div class="captcha-image" id="captcha-image"></div>
+                <input type="text" id="captcha-input" placeholder="введите капчу" maxlength="6">
+                <button id="captcha-submit">Подтвердить</button>
+                <div id="captcha-error" class="error-message"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОСНОВНОЙ ЭКРАН -->
+    <div id="main-screen" class="screen">
+        <!-- АККАУНТ ПОЛЬЗОВАТЕЛЯ -->
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar"></div>
+            <div class="user-details">
+                <div class="user-name" id="user-name"></div>
+                <div class="user-username" id="user-username"></div>
+            </div>
+        </div>
+
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <div class="container">
+            <h1 class="main-title">Выбери временной диапазон, из которого будут состоять клипы</h1>
+            
+            <!-- КНОПКИ ВЫБОРА ДЛИТЕЛЬНОСТИ -->
+            <div class="duration-buttons">
+                <button class="duration-btn" data-duration="10">10 секунд</button>
+                <button class="duration-btn" data-duration="20">20 секунд</button>
+                <button class="duration-btn" data-duration="30">30 секунд</button>
+            </div>
+
+            <!-- ОБЛАСТЬ ЗАГРУЗКИ ВИДЕО -->
+            <div class="upload-container" id="upload-container">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">📹</div>
+                        <p class="upload-text">Нажми, чтобы выбрать видео</p>
+                        <p class="upload-hint">или перетащи файл сюда</p>
+                    </div>
+                    <input type="file" id="video-input" accept="video/*" style="display: none;">
+                </div>
+
+                <!-- СОСТОЯНИЕ ОБРАБОТКИ -->
+                <div class="processing-state" id="processing-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p class="processing-text">Подожди, клипы нарезаются</p>
+                </div>
+
+                <!-- РЕЗУЛЬТАТ -->
+                <div class="results-container" id="results-container" style="display: none;">
+                    <h3>Готовые клипы</h3>
+                    <div class="clips-grid" id="clips-grid"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
