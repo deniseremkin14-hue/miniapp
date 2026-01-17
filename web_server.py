@@ -1,11 +1,17 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 import os
 import time
 import shutil
 import subprocess
+import logging
 from typing import List
+
+# Настройка логирования
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Создаем директорию для временных файлов
 TEMP_DIR = "temp_uploads"
@@ -27,6 +33,15 @@ def cleanup_old_files():
 
 app = FastAPI()
 
+# Добавляем CORS для Telegram Mini App
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["*"],
+)
+
 # Подключаем статические файлы (Mini App)
 app.mount("/static", StaticFiles(directory="."), name="static")
 
@@ -45,8 +60,11 @@ async def upload_video(
 ):
     """Загрузка видео и нарезка на клипы"""
     
+    logger.info(f"Получен запрос на загрузку видео: {file.filename}")
+    
     # Проверка типа файла
     if not file.content_type.startswith('video/'):
+        logger.error(f"Неверный тип файла: {file.content_type}")
         raise HTTPException(status_code=400, detail="Файл должен быть видео")
     
     # Очищаем старые файлы
@@ -58,10 +76,20 @@ async def upload_video(
     upload_dir = os.path.join(TEMP_DIR, upload_id)
     os.makedirs(upload_dir, exist_ok=True)
     
+    logger.info(f"Создана директория: {upload_dir}")
+    
     # Сохраняем загруженный файл
     input_path = os.path.join(upload_dir, file.filename)
-    with open(input_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
+    try:
+        with open(input_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        file_size = os.path.getsize(input_path)
+        logger.info(f"Файл сохранен: {input_path}, размер: {file_size} байт")
+        
+    except Exception as e:
+        logger.error(f"Ошибка сохранения файла: {e}")
+        raise HTTPException(status_code=500, detail=f"Ошибка сохранения файла: {str(e)}")
     
     # Создаем директорию для клипов
     clips_dir = os.path.join(upload_dir, "clips")
@@ -69,10 +97,12 @@ async def upload_video(
     
     # Нарезаем видео
     try:
+        logger.info(f"Начинаем нарезку видео на клипы по {duration} секунд")
         clips = split_video_ffmpeg(input_path, clips_dir, duration)
         
         # Подсчитываем только реально созданные файлы
         actual_clips_count = len(clips)
+        logger.info(f"Создано клипов: {actual_clips_count}")
         
         # Возвращаем информацию о клипах
         return {
@@ -84,6 +114,7 @@ async def upload_video(
         }
         
     except Exception as e:
+        logger.error(f"Ошибка нарезки видео: {e}")
         raise HTTPException(status_code=500, detail=f"Ошибка нарезки видео: {str(e)}")
 
 def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> List[str]:
