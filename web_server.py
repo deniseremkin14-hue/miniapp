@@ -89,30 +89,40 @@ async def upload_video(
 def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> List[str]:
     """Нарезка видео с помощью FFmpeg"""
     
-    cmd = [
-        "ffmpeg",
-        '-i', input_path,
-        '-c', 'copy',
-        '-map', '0',
-        '-f', 'segment',
-        '-segment_time', str(clip_duration),
-        '-segment_format', 'mp4',
-        '-reset_timestamps', '1',
-        '-avoid_negative_ts', 'make_zero',
-        '-copyts',
-        '-avoid_negative_ts', 'make_zero',
-        os.path.join(output_dir, 'clip_%03d.mp4')
+    # Сначала получаем точную длительность видео
+    duration_cmd = [
+        "ffprobe",
+        '-v', 'error',
+        '-show_entries', 'format=duration',
+        '-of', 'default=noprint_wrappers=1:nokey=1',
+        input_path
     ]
     
-    result = subprocess.run(cmd, check=True, capture_output=True, text=True)
+    duration_result = subprocess.run(duration_cmd, capture_output=True, text=True)
+    video_duration = float(duration_result.stdout.strip())
     
-    # Получаем список созданных клипов с полными путями
+    # Вычисляем количество клипов
+    num_clips = int(video_duration // clip_duration) + (1 if video_duration % clip_duration > 0 else 0)
+    
+    # Создаем клипы в цикле
     clips = []
-    for filename in os.listdir(output_dir):
-        if filename.endswith('.mp4'):
-            clips.append(os.path.join(output_dir, filename))
+    for i in range(num_clips):
+        start_time = i * clip_duration
+        output_file = os.path.join(output_dir, f'clip_{i+1:03d}.mp4')
+        
+        cmd = [
+            "ffmpeg",
+            '-i', input_path,
+            '-ss', str(start_time),
+            '-t', str(clip_duration),
+            '-c', 'copy',
+            '-avoid_negative_ts', 'make_zero',
+            output_file
+        ]
+        
+        subprocess.run(cmd, check=True, capture_output=True, text=True)
+        clips.append(output_file)
     
-    # Сортируем и возвращаем только реально созданные файлы
     return sorted(clips)
 
 if __name__ == "__main__":
