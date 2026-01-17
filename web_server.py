@@ -120,7 +120,7 @@ async def upload_video(
 def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> List[str]:
     """Нарезка видео с помощью FFmpeg через явный цикл"""
     
-    # Сначала получаем точную длительность видео
+    # Получаем реальную длительность видео через ffprobe
     duration_cmd = [
         "ffprobe",
         '-v', 'error',
@@ -129,13 +129,22 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
         input_path
     ]
     
+    logger.info(f"Получение длительности видео: {input_path}")
     duration_result = subprocess.run(duration_cmd, capture_output=True, text=True)
+    
+    if duration_result.returncode != 0:
+        logger.error(f"ffprobe ошибка: {duration_result.stderr}")
+        raise Exception(f"Не удалось получить длительность видео: {duration_result.stderr}")
+    
     video_duration = float(duration_result.stdout.strip())
+    logger.info(f"Длительность видео: {video_duration} секунд")
     
-    # Вычисляем количество клипов
-    num_clips = int(video_duration // clip_duration) + (1 if video_duration % clip_duration > 0 else 0)
+    # Корректно рассчитываем количество клипов (ceil)
+    import math
+    num_clips = math.ceil(video_duration / clip_duration)
+    logger.info(f"Рассчитано клипов: {num_clips} (длительность: {video_duration}, шаг: {clip_duration})")
     
-    # Создаем клипы в цикле с перекодированием для точной нарезки
+    # Создаем клипы ПОСЛЕДОВАТЕЛЬНО
     clips = []
     for i in range(num_clips):
         start_time = i * clip_duration
@@ -151,12 +160,29 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
             '-preset', 'fast',
             '-crf', '23',
             '-avoid_negative_ts', 'make_zero',
+            '-y',  # Перезаписывать существующие файлы
             output_file
         ]
         
-        subprocess.run(cmd, check=True, capture_output=True, text=True)
-        clips.append(output_file)
+        logger.info(f"Создание клипа {i+1}/{num_clips}: start={start_time}, duration={clip_duration}")
+        logger.info(f"Команда: {' '.join(cmd)}")
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode != 0:
+            logger.error(f"FFmpeg ошибка для клипа {i+1}: {result.stderr}")
+            raise Exception(f"Ошибка нарезки клипа {i+1}: {result.stderr}")
+        
+        # Проверяем существование файла
+        if os.path.exists(output_file):
+            file_size = os.path.getsize(output_file)
+            logger.info(f"Клип {i+1} создан: {output_file}, размер: {file_size} байт")
+            clips.append(output_file)
+        else:
+            logger.error(f"Клип {i+1} не создан: {output_file}")
+            raise Exception(f"Файл клипа {i+1} не был создан")
     
+    logger.info(f"Всего создано клипов: {len(clips)}")
     return sorted(clips)
 
 if __name__ == "__main__":
