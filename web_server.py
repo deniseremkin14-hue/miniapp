@@ -1,7 +1,6 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 import os
 import tempfile
 import shutil
@@ -9,15 +8,6 @@ import subprocess
 from typing import List
 
 app = FastAPI()
-
-# Добавляем CORS для GitHub Pages
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["https://deniseremkin14-hue.github.io"],
-    allow_credentials=True,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
 
 # Подключаем статические файлы (Mini App)
 app.mount("/static", StaticFiles(directory="."), name="static")
@@ -61,7 +51,8 @@ async def upload_video(
                 "success": True,
                 "message": f"Видео нарезано на {len(clips)} клипов",
                 "clips_count": len(clips),
-                "duration": duration
+                "duration": duration,
+                "clips": [os.path.basename(clip) for clip in clips]
             }
             
         except Exception as e:
@@ -87,11 +78,11 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
     
     result = subprocess.run(cmd, check=True, capture_output=True, text=True)
     
-    # Получаем список созданных клипов
+    # Получаем список созданных клипов с полными путями
     clips = []
     for filename in os.listdir(output_dir):
         if filename.endswith('.mp4'):
-            clips.append(filename)
+            clips.append(os.path.join(output_dir, filename))
     
     return sorted(clips)
 
