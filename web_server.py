@@ -118,7 +118,7 @@ async def upload_video(
         raise HTTPException(status_code=500, detail=f"Ошибка нарезки видео: {str(e)}")
 
 def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> List[str]:
-    """Нарезка видео с помощью FFmpeg"""
+    """Нарезка видео с помощью FFmpeg через явный цикл"""
     
     # Сначала получаем точную длительность видео
     duration_cmd = [
@@ -135,7 +135,7 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
     # Вычисляем количество клипов
     num_clips = int(video_duration // clip_duration) + (1 if video_duration % clip_duration > 0 else 0)
     
-    # Создаем клипы в цикле
+    # Создаем клипы в цикле с перекодированием для точной нарезки
     clips = []
     for i in range(num_clips):
         start_time = i * clip_duration
@@ -146,7 +146,10 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
             '-i', input_path,
             '-ss', str(start_time),
             '-t', str(clip_duration),
-            '-c', 'copy',
+            '-c:v', 'libx264',
+            '-c:a', 'aac',
+            '-preset', 'fast',
+            '-crf', '23',
             '-avoid_negative_ts', 'make_zero',
             output_file
         ]
