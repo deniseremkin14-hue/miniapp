@@ -388,20 +388,14 @@ class VideoCutterApp {
         resultsContainer.style.display = 'block';
         resultsContainer.classList.add('fade-in');
         
-        // Отображаем реальные результаты от сервера
-        const clips = [];
-        for (let i = 1; i <= result.clips_count; i++) {
-            clips.push({
-                name: `Клип ${i}`,
-                duration: `${result.duration} сек`
-            });
-        }
+        // Отображаем только реальные клипы от сервера
+        const clips = result.clips || [];
         
         clipsGrid.innerHTML = clips.map((clip, index) => `
             <div class="clip-item fade-in" style="animation-delay: ${index * 0.1}s">
                 <div class="clip-info">
-                    <div class="clip-name">${clip.name}</div>
-                    <div class="clip-duration">${clip.duration}</div>
+                    <div class="clip-name">${clip}</div>
+                    <div class="clip-duration">Клип ${index + 1}</div>
                 </div>
             </div>
         `).join('');
