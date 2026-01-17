@@ -46,11 +46,14 @@ async def upload_video(
         try:
             clips = split_video_ffmpeg(input_path, clips_dir, duration)
             
+            # Подсчитываем только реально созданные файлы
+            actual_clips_count = len(clips)
+            
             # Возвращаем информацию о клипах
             return {
                 "success": True,
-                "message": f"Видео нарезано на {len(clips)} клипов",
-                "clips_count": len(clips),
+                "message": f"Видео нарезано на {actual_clips_count} клипов",
+                "clips_count": actual_clips_count,
                 "duration": duration,
                 "clips": [os.path.basename(clip) for clip in clips]
             }
@@ -84,6 +87,7 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
         if filename.endswith('.mp4'):
             clips.append(os.path.join(output_dir, filename))
     
+    # Сортируем и возвращаем только реально созданные файлы
     return sorted(clips)
 
 if __name__ == "__main__":
