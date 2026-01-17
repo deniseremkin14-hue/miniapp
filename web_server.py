@@ -2,10 +2,28 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 import os
-import tempfile
+import time
 import shutil
 import subprocess
 from typing import List
+
+# Создаем директорию для временных файлов
+TEMP_DIR = "temp_uploads"
+os.makedirs(TEMP_DIR, exist_ok=True)
+
+def cleanup_old_files():
+    """Удаляет файлы старше 24 часов"""
+    current_time = time.time()
+    for filename in os.listdir(TEMP_DIR):
+        filepath = os.path.join(TEMP_DIR, filename)
+        if os.path.isdir(filepath):
+            # Проверяем возраст директории
+            if current_time - os.path.getmtime(filepath) > 24 * 3600:
+                shutil.rmtree(filepath)
+        else:
+            # Проверяем возраст файла
+            if current_time - os.path.getmtime(filepath) > 24 * 3600:
+                os.remove(filepath)
 
 app = FastAPI()
 
@@ -31,35 +49,42 @@ async def upload_video(
     if not file.content_type.startswith('video/'):
         raise HTTPException(status_code=400, detail="Файл должен быть видео")
     
-    # Создаем временную директорию
-    with tempfile.TemporaryDirectory() as temp_dir:
-        # Сохраняем загруженный файл
-        input_path = os.path.join(temp_dir, file.filename)
-        with open(input_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+    # Очищаем старые файлы
+    cleanup_old_files()
+    
+    # Создаем уникальную директорию для загрузки
+    import uuid
+    upload_id = str(uuid.uuid4())
+    upload_dir = os.path.join(TEMP_DIR, upload_id)
+    os.makedirs(upload_dir, exist_ok=True)
+    
+    # Сохраняем загруженный файл
+    input_path = os.path.join(upload_dir, file.filename)
+    with open(input_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    
+    # Создаем директорию для клипов
+    clips_dir = os.path.join(upload_dir, "clips")
+    os.makedirs(clips_dir, exist_ok=True)
+    
+    # Нарезаем видео
+    try:
+        clips = split_video_ffmpeg(input_path, clips_dir, duration)
         
-        # Создаем директорию для клипов
-        clips_dir = os.path.join(temp_dir, "clips")
-        os.makedirs(clips_dir, exist_ok=True)
+        # Подсчитываем только реально созданные файлы
+        actual_clips_count = len(clips)
         
-        # Нарезаем видео
-        try:
-            clips = split_video_ffmpeg(input_path, clips_dir, duration)
-            
-            # Подсчитываем только реально созданные файлы
-            actual_clips_count = len(clips)
-            
-            # Возвращаем информацию о клипах
-            return {
-                "success": True,
-                "message": f"Видео нарезано на {actual_clips_count} клипов",
-                "clips_count": actual_clips_count,
-                "duration": duration,
-                "clips": [os.path.basename(clip) for clip in clips]
-            }
-            
-        except Exception as e:
-            raise HTTPException(status_code=500, detail=f"Ошибка нарезки видео: {str(e)}")
+        # Возвращаем информацию о клипах
+        return {
+            "success": True,
+            "message": f"Видео нарезано на {actual_clips_count} клипов",
+            "clips_count": actual_clips_count,
+            "duration": duration,
+            "clips": [os.path.basename(clip) for clip in clips]
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка нарезки видео: {str(e)}")
 
 def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> List[str]:
     """Нарезка видео с помощью FFmpeg"""
