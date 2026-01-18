@@ -361,12 +361,30 @@ class VideoCutterApp {
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
 
-        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд (тип: ${typeof this.selectedDuration})`);
+        // ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА FormData перед отправкой
+        console.log('=== ПРОВЕРКА FormData ПЕРЕД ОТПРАВКОЙ ===');
+        console.log(`Выбранная длительность: ${this.selectedDuration} секунд`);
+        console.log(`Тип длительности: ${typeof this.selectedDuration}`);
+        console.log(`FormData.has("duration"): ${formData.has("duration")}`);
+        console.log(`FormData.has("file"): ${formData.has("file")}`);
+        
+        // Проверяем все значения в FormData
+        for (let [key, value] of formData.entries()) {
+            console.log(`FormData[${key}]:`, value, `(тип: ${typeof value})`);
+        }
+        
+        // Явная проверка наличия duration
+        if (!formData.has("duration")) {
+            console.error('ОШИБКА: duration отсутствует в FormData!');
+            alert('Ошибка: длительность не добавлена в запрос. Попробуйте выбрать длительность заново.');
+            this.resetUploadState();
+            return;
+        }
 
         try {
             const response = await fetch('/upload-video', {
                 method: 'POST',
-                body: formData
+                body: formData  // НЕ указываем Content-Type вручную
             });
 
             if (!response.ok) {
