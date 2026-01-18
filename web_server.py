@@ -56,11 +56,21 @@ async def mini_app():
 @app.post("/upload-video")
 async def upload_video(
     file: UploadFile = File(...),
-    duration: int = 30
+    duration: int = None  # Убираем значение по умолчанию
 ):
     """Загрузка видео и нарезка на клипы"""
     
     logger.info(f"Получен запрос на загрузку видео: {file.filename}")
+    logger.info(f"Полученная длительность клипа: {duration} секунд")
+    
+    # Явная проверка получения параметра длительности
+    if duration is None:
+        logger.error("Параметр duration не получен от клиента")
+        raise HTTPException(status_code=400, detail="Параметр duration обязателен")
+    
+    if duration <= 0:
+        logger.error(f"Некорректная длительность клипа: {duration}")
+        raise HTTPException(status_code=400, detail="Длительность клипа должна быть положительным числом")
     
     # Проверка типа файла
     if not file.content_type.startswith('video/'):
@@ -95,7 +105,7 @@ async def upload_video(
     clips_dir = os.path.join(upload_dir, "clips")
     os.makedirs(clips_dir, exist_ok=True)
     
-    # Нарезаем видео
+    # Нарезаем видео с использованием полученной длительности
     try:
         logger.info(f"Начинаем нарезку видео на клипы по {duration} секунд")
         clips = split_video_ffmpeg(input_path, clips_dir, duration)
@@ -109,7 +119,7 @@ async def upload_video(
             "success": True,
             "message": f"Видео нарезано на {actual_clips_count} клипов",
             "clips_count": actual_clips_count,
-            "duration": duration,
+            "duration": duration,  # Возвращаем полученную длительность
             "clips": [os.path.basename(clip) for clip in clips]
         }
         
@@ -137,7 +147,8 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
         raise Exception(f"Не удалось получить длительность видео: {duration_result.stderr}")
     
     video_duration = float(duration_result.stdout.strip())
-    logger.info(f"Длительность видео: {video_duration} секунд")
+    logger.info(f"Общая длительность видео: {video_duration} секунд")
+    logger.info(f"Используемая длительность клипа: {clip_duration} секунд")
     
     # Корректно рассчитываем количество клипов (ceil)
     import math

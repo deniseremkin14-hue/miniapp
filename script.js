@@ -348,6 +348,8 @@ class VideoCutterApp {
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
 
+        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд`);
+
         try {
             const response = await fetch('/upload-video', {
                 method: 'POST',
