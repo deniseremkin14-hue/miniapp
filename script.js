@@ -317,7 +317,12 @@ class VideoCutterApp {
     selectDuration(btn) {
         document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        this.selectedDuration = parseInt(btn.dataset.duration);
+        
+        // Гарантируем, что значение является числом
+        const durationValue = parseInt(btn.dataset.duration);
+        this.selectedDuration = durationValue;
+        
+        console.log(`Выбрана длительность клипа: ${durationValue} секунд`);
         
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
@@ -330,7 +335,8 @@ class VideoCutterApp {
             return;
         }
 
-        if (!this.selectedDuration) {
+        // Проверяем, что длительность выбрана и является числом
+        if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
             alert('Сначала выберите длительность клипов');
             return;
         }
@@ -344,11 +350,18 @@ class VideoCutterApp {
 
     // ЗАГРУЗКА ВИДЕО НА СЕРВЕР
     async uploadVideo(file) {
+        // Финальная проверка перед отправкой
+        if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
+            alert('Длительность клипов не выбрана. Пожалуйста, выберите длительность и попробуйте снова.');
+            this.resetUploadState();
+            return;
+        }
+
         const formData = new FormData();
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
 
-        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд`);
+        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд (тип: ${typeof this.selectedDuration})`);
 
         try {
             const response = await fetch('/upload-video', {
