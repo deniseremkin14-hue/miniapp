@@ -357,14 +357,18 @@ class VideoCutterApp {
             return;
         }
 
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('duration', this.selectedDuration);
-
         // ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА FormData перед отправкой
         console.log('=== ПРОВЕРКА FormData ПЕРЕД ОТПРАВКОЙ ===');
         console.log(`Выбранная длительность: ${this.selectedDuration} секунд`);
         console.log(`Тип длительности: ${typeof this.selectedDuration}`);
+        console.log(`this.selectedDuration === null: ${this.selectedDuration === null}`);
+        console.log(`this.selectedDuration === undefined: ${this.selectedDuration === undefined}`);
+        console.log(`isNaN(this.selectedDuration): ${isNaN(this.selectedDuration)}`);
+        
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('duration', this.selectedDuration);
+        
         console.log(`FormData.has("duration"): ${formData.has("duration")}`);
         console.log(`FormData.has("file"): ${formData.has("file")}`);
         
