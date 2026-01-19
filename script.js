@@ -347,8 +347,8 @@ class VideoCutterApp {
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
         
-        // Если были предыдущие результаты, сбрасываем для нового выбора
-        this.resetUploadState();
+        // НЕ сбрасываем результаты при выборе длительности - только при новой загрузке
+        // this.resetUploadState();
     }
 
     // ОБРАБОТКА ФАЙЛА
