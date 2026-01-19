@@ -488,6 +488,15 @@ class VideoCutterApp {
         console.log('resultsContainer.innerHTML:', resultsContainer.innerHTML);
         console.log('resultsContainer.children.length:', resultsContainer.children.length);
         
+        // Показываем все дочерние элементы
+        for (let i = 0; i < resultsContainer.children.length; i++) {
+            console.log(`Дочерний элемент ${i}:`, resultsContainer.children[i]);
+            console.log(`Тег: ${resultsContainer.children[i].tagName}`);
+            console.log(`ID: ${resultsContainer.children[i].id}`);
+            console.log(`Классы: ${resultsContainer.children[i].className}`);
+            console.log(`Стиль display: ${resultsContainer.children[i].style.display}`);
+        }
+        
         // Проверяем содержимое results-container
         if (resultsContainer.children.length === 0) {
             console.log('resultsContainer пуст - добавляем кнопку');
