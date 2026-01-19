@@ -403,8 +403,13 @@ class VideoCutterApp {
             console.log('result.clips_count:', result.clips_count);
             console.log('result.message:', result.message);
 
+            console.log('=== ПЕРЕД ВЫЗОВОМ showResults() ===');
+            console.log('Будет вызвана showResults с результатом:', result);
+            
             if (result.success) {
+                console.log('Вызываем showResults()...');
                 this.showResults(result);
+                console.log('showResults() вызвана');
             } else {
                 throw new Error(result.message || 'Ошибка обработки видео');
             }
@@ -487,6 +492,37 @@ class VideoCutterApp {
         console.log('resultsContainer.classList:', resultsContainer.classList);
         console.log('resultsContainer.innerHTML:', resultsContainer.innerHTML);
         console.log('resultsContainer.children.length:', resultsContainer.children.length);
+        
+        // Проверяем, есть ли кнопка открытия клипов
+        const openClipsBtn = document.getElementById('open-clips-btn');
+        console.log('openClipsBtn найден:', openClipsBtn);
+        
+        // Если кнопки нет, добавляем ее
+        if (!openClipsBtn) {
+            console.log('Кнопка не найдена - создаем новую');
+            const button = document.createElement('button');
+            button.id = 'open-clips-btn';
+            button.className = 'open-clips-btn';
+            button.textContent = '📂 Открыть клипы';
+            button.addEventListener('click', () => {
+                this.openClipsFolder();
+            });
+            resultsContainer.appendChild(button);
+        }
+        
+        // Проверяем, есть ли папка клипов
+        const clipsFolder = document.getElementById('clips-folder');
+        console.log('clipsFolder найден:', clipsFolder);
+        
+        // Если папки нет, добавляем ее
+        if (!clipsFolder) {
+            console.log('Папка не найдена - создаем новую');
+            const folder = document.createElement('div');
+            folder.id = 'clips-folder';
+            folder.style.display = 'none';
+            folder.innerHTML = '<h4>📁 Ваши клипы</h4><div class="clips-list" id="clips-list"></div>';
+            resultsContainer.appendChild(folder);
+        }
         
         // Показываем все дочерние элементы
         for (let i = 0; i < resultsContainer.children.length; i++) {
