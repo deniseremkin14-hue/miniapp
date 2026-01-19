@@ -446,6 +446,14 @@ class VideoCutterApp {
         resultsContainer.style.display = 'block';
         resultsContainer.classList.add('fade-in');
         
+        // Логируем родительские элементы для диагностики
+        console.log('=== ДИАГНОСТИКА HTML СТРУКТУРЫ ===');
+        console.log('resultsContainer найден:', resultsContainer);
+        console.log('Родитель results-container:', resultsContainer.parentElement);
+        console.log('Классы родителя:', resultsContainer.parentElement ? resultsContainer.parentElement.classList : 'нет родителя');
+        console.log('Стиль results-container:', resultsContainer.style.display);
+        console.log('Стиль родителя:', resultsContainer.parentElement ? resultsContainer.parentElement.style.display : 'нет родителя');
+        
         // Сохраняем клипы для доступа
         this.currentClips = result.clips || [];
         console.log('Сохранены клипы:', this.currentClips);
