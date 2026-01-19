@@ -114,14 +114,32 @@ async def upload_video(
         actual_clips_count = len(clips)
         logger.info(f"Создано клипов: {actual_clips_count}")
         
+        # Копируем клипы в статическую папку для постоянного доступа
+        static_clips_dir = "static/clips"
+        os.makedirs(static_clips_dir, exist_ok=True)
+        
+        clip_urls = []
+        for i, clip_path in enumerate(clips):
+            # Уникальное имя файла для избежания конфликтов
+            clip_name = f"clip_{upload_id}_{i+1:03d}.mp4"
+            static_clip_path = os.path.join(static_clips_dir, clip_name)
+            
+            # Копируем клип в статическую папку
+            shutil.copy2(clip_path, static_clip_path)
+            clip_urls.append(f"/static/clips/{clip_name}")
+            logger.info(f"Клип скопирован в статическую папку: {static_clip_path}")
+        
         # Возвращаем информацию о клипах с полными URL
-        return {
+        result = {
             "success": True,
             "message": f"Видео нарезано на {actual_clips_count} клипов",
             "clips_count": actual_clips_count,
             "duration": duration_int,
-            "clips": [f"/static/{os.path.relpath(clip, '.')}" for clip in clips]
+            "clips": clip_urls
         }
+        
+        logger.info(f"Возвращаемый результат: {result}")
+        return result
         
     except Exception as e:
         logger.error(f"Ошибка нарезки видео: {e}")
