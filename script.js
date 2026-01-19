@@ -499,23 +499,53 @@ class VideoCutterApp {
                 return;
             }
             
+            // Очищаем список перед добавлением новых клипов
+            clipsList.innerHTML = '';
+            
             // Отображаем список клипов
-            clipsList.innerHTML = this.currentClips.map((clip, index) => `
-                <div class="clip-item-list">
-                    <div class="clip-info-list">
-                        <span class="clip-name-list">📹 ${clip.split('/').pop()}</span>
-                        <span class="clip-index">Клип ${index + 1}</span>
-                    </div>
-                    <div class="clip-actions">
-                        <button class="preview-btn" onclick="app.previewClip('${clip}', ${index})">
-                            👁️ Предпросмотр
-                        </button>
-                        <button class="download-btn" onclick="app.downloadClip('${clip}', ${index})">
-                            ⬇️ Скачать
-                        </button>
-                    </div>
-                </div>
-            `).join('');
+            this.currentClips.forEach((clip, index) => {
+                const clipItem = document.createElement('div');
+                clipItem.className = 'clip-item-list';
+                
+                const clipInfo = document.createElement('div');
+                clipInfo.className = 'clip-info-list';
+                
+                const clipName = document.createElement('span');
+                clipName.className = 'clip-name-list';
+                clipName.textContent = '📹 ' + clip.split('/').pop();
+                
+                const clipIndex = document.createElement('span');
+                clipIndex.className = 'clip-index';
+                clipIndex.textContent = 'Клип ' + (index + 1);
+                
+                clipInfo.appendChild(clipName);
+                clipInfo.appendChild(clipIndex);
+                
+                const clipActions = document.createElement('div');
+                clipActions.className = 'clip-actions';
+                
+                const previewBtn = document.createElement('button');
+                previewBtn.className = 'preview-btn';
+                previewBtn.textContent = '👁️ Предпросмотр';
+                previewBtn.addEventListener('click', () => {
+                    this.previewClip(clip, index);
+                });
+                
+                const downloadBtn = document.createElement('button');
+                downloadBtn.className = 'download-btn';
+                downloadBtn.textContent = '⬇️ Скачать';
+                downloadBtn.addEventListener('click', () => {
+                    this.downloadClip(clip, index);
+                });
+                
+                clipActions.appendChild(previewBtn);
+                clipActions.appendChild(downloadBtn);
+                
+                clipItem.appendChild(clipInfo);
+                clipItem.appendChild(clipActions);
+                
+                clipsList.appendChild(clipItem);
+            });
             
             console.log('Список клипов отображен');
         } else {
@@ -535,20 +565,45 @@ class VideoCutterApp {
         // Создаем модальное окно для предпросмотра
         const modal = document.createElement('div');
         modal.className = 'preview-modal';
-        modal.innerHTML = `
-            <div class="preview-content">
-                <div class="preview-header">
-                    <h3>Предпросмотр: ${clipName}</h3>
-                    <button class="close-btn" onclick="this.parentElement.parentElement.remove()">✖️</button>
-                </div>
-                <div class="preview-video">
-                    <video controls width="100%" height="auto" style="max-height: 400px;">
-                        <source src="${clipUrl}" type="video/mp4">
-                        Ваш браузер не поддерживает видео.
-                    </video>
-                </div>
-            </div>
-        `;
+        
+        const previewContent = document.createElement('div');
+        previewContent.className = 'preview-content';
+        
+        const previewHeader = document.createElement('div');
+        previewHeader.className = 'preview-header';
+        
+        const title = document.createElement('h3');
+        title.textContent = 'Предпросмотр: ' + clipName;
+        
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'close-btn';
+        closeBtn.textContent = '✖️';
+        closeBtn.addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        previewHeader.appendChild(title);
+        previewHeader.appendChild(closeBtn);
+        
+        const previewVideo = document.createElement('div');
+        previewVideo.className = 'preview-video';
+        
+        const video = document.createElement('video');
+        video.controls = true;
+        video.width = '100%';
+        video.style.maxHeight = '400px';
+        
+        const source = document.createElement('source');
+        source.src = clipUrl;
+        source.type = 'video/mp4';
+        
+        video.appendChild(source);
+        video.appendChild(document.createTextNode('Ваш браузер не поддерживает видео.'));
+        
+        previewVideo.appendChild(video);
+        previewContent.appendChild(previewHeader);
+        previewContent.appendChild(previewVideo);
+        modal.appendChild(previewContent);
         
         document.body.appendChild(modal);
         console.log('Модальное окно предпросмотра создано');
