@@ -125,9 +125,14 @@ async def upload_video(
             static_clip_path = os.path.join(static_clips_dir, clip_name)
             
             # Копируем клип в статическую папку
-            shutil.copy2(clip_path, static_clip_path)
-            clip_urls.append(f"/static/clips/{clip_name}")
-            logger.info(f"Клип скопирован в статическую папку: {static_clip_path}")
+            try:
+                shutil.copy2(clip_path, static_clip_path)
+                clip_urls.append(f"/static/clips/{clip_name}")
+                logger.info(f"Клип скопирован в статическую папку: {static_clip_path}")
+                logger.info(f"URL клипа: /static/clips/{clip_name}")
+            except Exception as e:
+                logger.error(f"Ошибка копирования клипа {clip_path}: {e}")
+                continue
         
         # Возвращаем информацию о клипах с полными URL
         result = {

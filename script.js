@@ -707,18 +707,18 @@ class VideoCutterApp {
         console.log('index:', index);
         
         const clipName = clipUrl.split('/').pop();
+        const fullUrl = window.location.origin + clipUrl;
         
-        // Создаем временную ссылку для скачивания
-        const link = document.createElement('a');
-        link.href = clipUrl;
-        link.download = clipName;
-        link.style.display = 'none';
+        console.log('Полный URL для скачивания:', fullUrl);
         
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        
-        console.log('Скачивание клипа начато:', clipName);
+        // Открываем клип в новой вкладке для просмотра/скачивания
+        try {
+            window.open(fullUrl, '_blank');
+            console.log('Клип открыт в новой вкладке:', fullUrl);
+        } catch (error) {
+            console.error('Ошибка открытия клипа:', error);
+            alert('Не удалось открыть клип. Попробуйте скопировать ссылку: ' + fullUrl);
+        }
     }
 
     // Сброс состояния загрузки
