@@ -387,11 +387,21 @@ class VideoCutterApp {
                 body: formData
             });
 
+            console.log('=== ОТВЕТ СЕРВЕРА ===');
+            console.log('response.status:', response.status);
+            console.log('response.ok:', response.ok);
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
             const result = await response.json();
+            console.log('=== JSON ОТВЕТ ===');
+            console.log('result:', result);
+            console.log('result.success:', result.success);
+            console.log('result.clips:', result.clips);
+            console.log('result.clips_count:', result.clips_count);
+            console.log('result.message:', result.message);
 
             if (result.success) {
                 this.showResults(result);
@@ -439,6 +449,23 @@ class VideoCutterApp {
         // Сохраняем клипы для доступа
         this.currentClips = result.clips || [];
         console.log('Сохранены клипы:', this.currentClips);
+        console.log('Количество клипов:', this.currentClips.length);
+        
+        // Показываем диагностическое сообщение если клипов нет
+        if (this.currentClips.length === 0) {
+            const clipsList = document.getElementById('clips-list');
+            if (clipsList) {
+                clipsList.innerHTML = `
+                    <div style="text-align: center; padding: 20px; color: #999;">
+                        <p>📹 Клипы созданы, но список пуст</p>
+                        <p style="font-size: 14px; margin-top: 10px;">
+                            Количество: ${result.clips_count || 0}<br>
+                            Длительность: ${result.duration || 'неизвестно'} сек
+                        </p>
+                    </div>
+                `;
+            }
+        }
         
         // Показываем сообщение об успехе
         if (result.message) {
@@ -468,7 +495,7 @@ class VideoCutterApp {
             
             if (this.currentClips.length === 0) {
                 console.log('Нет клипов для отображения');
-                clipsList.innerHTML = '<p style="color: #999;">Нет доступных клипов</p>';
+                // Диагностическое сообщение уже установлено в showResults
                 return;
             }
             
