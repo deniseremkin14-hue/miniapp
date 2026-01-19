@@ -453,6 +453,7 @@ class VideoCutterApp {
         console.log('Классы родителя:', resultsContainer.parentElement ? resultsContainer.parentElement.classList : 'нет родителя');
         console.log('Стиль results-container:', resultsContainer.style.display);
         console.log('Стиль родителя:', resultsContainer.parentElement ? resultsContainer.parentElement.style.display : 'нет родителя');
+        console.log('Есть ли у родителя класс active:', resultsContainer.parentElement ? resultsContainer.parentElement.classList.contains('active') : 'нет родителя');
         
         // Сохраняем клипы для доступа
         this.currentClips = result.clips || [];
