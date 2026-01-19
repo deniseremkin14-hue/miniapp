@@ -56,21 +56,30 @@ async def mini_app():
 @app.post("/upload-video")
 async def upload_video(
     file: UploadFile = File(...),
-    duration: int = None  # Убираем значение по умолчанию
+    duration: int = None
 ):
     """Загрузка видео и нарезка на клипы"""
     
     logger.info(f"Получен запрос на загрузку видео: {file.filename}")
-    logger.info(f"Полученная длительность клипа: {duration} секунд")
+    logger.info(f"Полученная длительность клипа: {duration} секунд (тип: {type(duration)})")
     
     # Явная проверка получения параметра длительности
     if duration is None:
-        logger.error("Параметр duration не получен от клиента")
-        raise HTTPException(status_code=400, detail="Параметр duration обязателен")
+        logger.error("ОШИБКА: Параметр duration не получен от клиента, используем значение по умолчанию 10")
+        duration = 10  # Значение по умолчанию
+    
+    # Приводим к int ОДИН РАЗ
+    try:
+        duration = int(duration)
+    except (ValueError, TypeError):
+        logger.error(f"ОШИБКА: Некорректный тип duration: {duration}, используем значение по умолчанию 10")
+        duration = 10
     
     if duration <= 0:
-        logger.error(f"Некорректная длительность клипа: {duration}")
-        raise HTTPException(status_code=400, detail="Длительность клипа должна быть положительным числом")
+        logger.error(f"ОШИБКА: Некорректная длительность клипа: {duration}, используем значение по умолчанию 10")
+        duration = 10
+    
+    logger.info(f"Финальная длительность клипа: {duration} секунд")
     
     # Проверка типа файла
     if not file.content_type.startswith('video/'):
@@ -147,12 +156,11 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
         raise Exception(f"Не удалось получить длительность видео: {duration_result.stderr}")
     
     video_duration = float(duration_result.stdout.strip())
-    logger.info(f"Общая длительность видео: {video_duration} секунд")
+    logger.info(f"Вычисленная длительность видео: {video_duration} секунд")
     logger.info(f"Используемая длительность клипа: {clip_duration} секунд")
     
-    # Корректно рассчитываем количество клипов (ceil)
-    import math
-    num_clips = math.ceil(video_duration / clip_duration)
+    # Формула: целочисленное деление + 1 клип, если есть остаток
+    num_clips = (int(video_duration) // clip_duration) + (1 if int(video_duration) % clip_duration > 0 else 0)
     logger.info(f"Рассчитано клипов: {num_clips} (длительность: {video_duration}, шаг: {clip_duration})")
     
     # Создаем клипы ПОСЛЕДОВАТЕЛЬНО
@@ -171,12 +179,11 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
             '-preset', 'fast',
             '-crf', '23',
             '-avoid_negative_ts', 'make_zero',
-            '-y',  # Перезаписывать существующие файлы
+            '-y',
             output_file
         ]
         
         logger.info(f"Создание клипа {i+1}/{num_clips}: start={start_time}, duration={clip_duration}")
-        logger.info(f"Команда: {' '.join(cmd)}")
         
         result = subprocess.run(cmd, capture_output=True, text=True)
         
@@ -193,7 +200,7 @@ def split_video_ffmpeg(input_path: str, output_dir: str, clip_duration: int) -> 
             logger.error(f"Клип {i+1} не создан: {output_file}")
             raise Exception(f"Файл клипа {i+1} не был создан")
     
-    logger.info(f"Всего создано клипов: {len(clips)}")
+    logger.info(f"ФАКТИЧЕСКИ создано клипов: {len(clips)}")
     return sorted(clips)
 
 if __name__ == "__main__":

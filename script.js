@@ -1,7 +1,7 @@
 class VideoCutterApp {
     constructor() {
         this.currentCaptcha = '';
-        this.selectedDuration = null;
+        this.selectedDuration = 10; // Значение по умолчанию
         this.uploadedFile = null;
         
         this.init();
@@ -335,10 +335,10 @@ class VideoCutterApp {
             return;
         }
 
-        // Проверяем, что длительность выбрана и является числом
+        // Гарантируем, что duration всегда имеет значение (по умолчанию 10)
         if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
-            alert('Сначала выберите длительность клипов');
-            return;
+            this.selectedDuration = 10; // Значение по умолчанию
+            console.log(`Используем длительность по умолчанию: ${this.selectedDuration} секунд`);
         }
 
         this.uploadedFile = file;
@@ -350,45 +350,22 @@ class VideoCutterApp {
 
     // ЗАГРУЗКА ВИДЕО НА СЕРВЕР
     async uploadVideo(file) {
-        // Финальная проверка перед отправкой
+        // Гарантируем минимальную проверку
         if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
-            alert('Длительность клипов не выбрана. Пожалуйста, выберите длительность и попробуйте снова.');
-            this.resetUploadState();
-            return;
+            this.selectedDuration = 10; // Финальная защита
+            console.log(`Финальная защита: установлена длительность ${this.selectedDuration} секунд`);
         }
 
-        // ОБЯЗАТЕЛЬНАЯ ПРОВЕРКА FormData перед отправкой
-        console.log('=== ПРОВЕРКА FormData ПЕРЕД ОТПРАВКОЙ ===');
-        console.log(`Выбранная длительность: ${this.selectedDuration} секунд`);
-        console.log(`Тип длительности: ${typeof this.selectedDuration}`);
-        console.log(`this.selectedDuration === null: ${this.selectedDuration === null}`);
-        console.log(`this.selectedDuration === undefined: ${this.selectedDuration === undefined}`);
-        console.log(`isNaN(this.selectedDuration): ${isNaN(this.selectedDuration)}`);
-        
         const formData = new FormData();
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
-        
-        console.log(`FormData.has("duration"): ${formData.has("duration")}`);
-        console.log(`FormData.has("file"): ${formData.has("file")}`);
-        
-        // Проверяем все значения в FormData
-        for (let [key, value] of formData.entries()) {
-            console.log(`FormData[${key}]:`, value, `(тип: ${typeof value})`);
-        }
-        
-        // Явная проверка наличия duration
-        if (!formData.has("duration")) {
-            console.error('ОШИБКА: duration отсутствует в FormData!');
-            alert('Ошибка: длительность не добавлена в запрос. Попробуйте выбрать длительность заново.');
-            this.resetUploadState();
-            return;
-        }
+
+        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд (тип: ${typeof this.selectedDuration})`);
 
         try {
             const response = await fetch('/upload-video', {
                 method: 'POST',
-                body: formData  // НЕ указываем Content-Type вручную
+                body: formData
             });
 
             if (!response.ok) {
