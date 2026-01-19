@@ -23,9 +23,6 @@
 
     <!-- ОСНОВНОЙ ЭКРАН -->
     <div class="main-screen" id="main-screen">
-        <!-- КНОПКА МЕНЮ -->
-        <button class="menu-btn" id="menu-btn">☰</button>
-        
         <!-- ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ -->
         <div class="user-info" id="user-info">
             <div class="user-avatar" id="user-avatar">
@@ -63,27 +60,20 @@
                 <div class="loading-spinner"></div>
                 <p class="processing-text">Подожди, клипы нарезаются</p>
             </div>
-        </div>
-    </div>
 
-    <!-- ЭКРАН КЛИПОВ -->
-    <div class="clips-screen" id="clips-screen" style="display: none;">
-        <button class="back-btn" id="back-btn">← Назад</button>
-        <h2 class="clips-title">📁 Нарезанные клипы</h2>
-        <div class="clips-container" id="clips-container"></div>
-    </div>
-
-    <!-- БОКОВАЯ ПАНЕЛЬ -->
-    <div class="sidebar" id="sidebar">
-        <div class="sidebar-content">
-            <div class="sidebar-item" id="clips-menu-item">
-                <span>📁 Нарезанные клипы</span>
+            <!-- РЕЗУЛЬТАТ -->
+            <div class="results-container" id="results-container" style="display: none;">
+                <h3>Видео нарезано!</h3>
+                <button id="open-clips-btn" class="open-clips-btn">📂 Открыть клипы</button>
+                
+                <!-- ВИРТУАЛЬНАЯ ПАПКА С КЛИПАМИ -->
+                <div id="clips-folder" style="display: none;">
+                    <h4>📁 Ваши клипы</h4>
+                    <div class="clips-list" id="clips-list"></div>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- ЗАТЕМНЕНИЕ -->
-    <div class="sidebar-overlay" id="sidebar-overlay"></div>
 
     <script src="/static/script.js"></script>
 </body>
