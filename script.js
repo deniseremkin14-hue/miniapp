@@ -478,8 +478,13 @@ class VideoCutterApp {
         
         // Показываем сообщение об успехе
         if (result.message) {
-            alert(result.message);
+            console.log('SUCCESS:', result.message);
+            // alert(result.message); // Временно отключен для диагностики
         }
+        
+        console.log('=== ФУНКЦИЯ showResults() ЗАВЕРШЕНА ===');
+        console.log('resultsContainer.display:', resultsContainer.style.display);
+        console.log('resultsContainer.classList:', resultsContainer.classList);
         
         // НЕ сбрасываем автоматически - ждем действия пользователя
     }
