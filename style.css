@@ -302,6 +302,7 @@ body {
 /* РЕЗУЛЬТАТЫ */
 .results-container {
     margin-top: 30px;
+    display: block !important;
 }
 
 .results-container h3 {
@@ -356,7 +357,7 @@ body {
     cursor: pointer;
     margin: 20px 0;
     transition: all 0.3s ease;
-    display: block;
+    display: block !important;
     width: 100%;
 }
 
