@@ -485,6 +485,27 @@ class VideoCutterApp {
         console.log('=== ФУНКЦИЯ showResults() ЗАВЕРШЕНА ===');
         console.log('resultsContainer.display:', resultsContainer.style.display);
         console.log('resultsContainer.classList:', resultsContainer.classList);
+        console.log('resultsContainer.innerHTML:', resultsContainer.innerHTML);
+        console.log('resultsContainer.children.length:', resultsContainer.children.length);
+        
+        // Проверяем содержимое results-container
+        if (resultsContainer.children.length === 0) {
+            console.log('resultsContainer пуст - добавляем кнопку');
+            const button = document.createElement('button');
+            button.id = 'open-clips-btn';
+            button.className = 'open-clips-btn';
+            button.textContent = '📂 Открыть клипы';
+            button.addEventListener('click', () => {
+                this.openClipsFolder();
+            });
+            resultsContainer.appendChild(button);
+            
+            const folder = document.createElement('div');
+            folder.id = 'clips-folder';
+            folder.style.display = 'none';
+            folder.innerHTML = '<h4>📁 Ваши клипы</h4><div class="clips-list" id="clips-list"></div>';
+            resultsContainer.appendChild(folder);
+        }
         
         // НЕ сбрасываем автоматически - ждем действия пользователя
     }
