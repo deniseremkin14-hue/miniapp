@@ -591,6 +591,10 @@ class VideoCutterApp {
             
             // Отображаем список клипов
             this.currentClips.forEach((clip, index) => {
+                console.log(`=== СОЗДАНИЕ КЛИПА ${index + 1} ===`);
+                console.log('URL клипа:', clip);
+                console.log('Полный URL:', window.location.origin + clip);
+                
                 const clipItem = document.createElement('div');
                 clipItem.className = 'clip-item-list';
                 
