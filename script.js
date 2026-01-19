@@ -408,8 +408,12 @@ class VideoCutterApp {
         
         clipsGrid.innerHTML = clips.map((clip, index) => `
             <div class="clip-item fade-in" style="animation-delay: ${index * 0.1}s">
+                <video controls width="100%" height="auto" style="max-height: 200px;">
+                    <source src="${clip}" type="video/mp4">
+                    Ваш браузер не поддерживает видео.
+                </video>
                 <div class="clip-info">
-                    <div class="clip-name">${clip}</div>
+                    <div class="clip-name">${clip.split('/').pop()}</div>
                     <div class="clip-duration">Клип ${index + 1}</div>
                 </div>
             </div>

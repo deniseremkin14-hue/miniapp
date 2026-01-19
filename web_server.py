@@ -114,13 +114,13 @@ async def upload_video(
         actual_clips_count = len(clips)
         logger.info(f"Создано клипов: {actual_clips_count}")
         
-        # Возвращаем информацию о клипах
+        # Возвращаем информацию о клипах с полными URL
         return {
             "success": True,
             "message": f"Видео нарезано на {actual_clips_count} клипов",
             "clips_count": actual_clips_count,
             "duration": duration_int,
-            "clips": [os.path.basename(clip) for clip in clips]
+            "clips": [f"/static/{os.path.relpath(clip, '.')}" for clip in clips]
         }
         
     except Exception as e:
