@@ -356,6 +356,8 @@ body {
     cursor: pointer;
     margin: 20px 0;
     transition: all 0.3s ease;
+    display: block;
+    width: 100%;
 }
 
 .open-clips-btn:hover {
