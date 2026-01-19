@@ -12,14 +12,14 @@ body {
     overflow-x: hidden;
 }
 
+.screen.active {
+    display: block;
+}
+
 .screen {
     display: none;
     min-height: 100vh;
     padding: 20px;
-}
-
-.screen.active {
-    display: block;
 }
 
 .container {
