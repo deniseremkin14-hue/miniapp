@@ -327,6 +327,9 @@ class VideoCutterApp {
         
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
+        
+        // Если были предыдущие результаты, сбрасываем для нового выбора
+        this.resetUploadState();
     }
 
     // ОБРАБОТКА ФАЙЛА
@@ -379,7 +382,7 @@ class VideoCutterApp {
         } catch (error) {
             console.error('Ошибка загрузки видео:', error);
             alert('Ошибка при загрузке видео: ' + error.message);
-            this.resetUploadState();
+            this.resetUploadState(); // Сброс только при ошибке
         }
     }
 
@@ -421,6 +424,8 @@ class VideoCutterApp {
         
         // Показываем сообщение об успехе
         alert(result.message);
+        
+        // НЕ сбрасываем автоматически - ждем действия пользователя
     }
 
     // Сброс состояния загрузки
@@ -432,6 +437,29 @@ class VideoCutterApp {
         uploadArea.style.display = 'flex';
         processingState.style.display = 'none';
         resultsContainer.style.display = 'none';
+    }
+
+    // Полный сброс в начальное состояние
+    resetToInitialState() {
+        // Скрываем все экраны результатов
+        this.resetUploadState();
+        
+        // Очищаем предыдущие клипы
+        const clipsGrid = document.getElementById('clips-grid');
+        clipsGrid.innerHTML = '';
+        
+        // Очищаем файловый инпут
+        const videoInput = document.getElementById('video-input');
+        videoInput.value = '';
+        
+        // НЕ сбрасываем выбранную длительность - пользователь может выбрать новую
+        // Кнопки остаются активными для нового выбора
+        
+        // Показываем область выбора длительности (если была скрыта)
+        const uploadContainer = document.getElementById('upload-container');
+        if (uploadContainer) {
+            uploadContainer.classList.remove('slide-up');
+        }
     }
 }
 
