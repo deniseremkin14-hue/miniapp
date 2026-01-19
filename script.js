@@ -495,6 +495,13 @@ class VideoCutterApp {
             console.log(`ID: ${resultsContainer.children[i].id}`);
             console.log(`Классы: ${resultsContainer.children[i].className}`);
             console.log(`Стиль display: ${resultsContainer.children[i].style.display}`);
+            
+            // Если это кнопка открытия клипов, показываем ее принудительно
+            if (resultsContainer.children[i].id === 'open-clips-btn') {
+                console.log('НАЙДЕНА КНОПКА - показываем принудительно');
+                resultsContainer.children[i].style.display = 'block';
+                resultsContainer.children[i].style.visibility = 'visible';
+            }
         }
         
         // Проверяем содержимое results-container
