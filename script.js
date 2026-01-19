@@ -417,8 +417,20 @@ class VideoCutterApp {
 
     // РЕЗУЛЬТАТ
     showResults(result) {
+        console.log('=== ПОЛУЧЕН РЕЗУЛЬТАТ ОТ СЕРВЕРА ===');
+        console.log('result:', result);
+        console.log('result.success:', result.success);
+        console.log('result.clips:', result.clips);
+        console.log('result.clips_count:', result.clips_count);
+        console.log('result.message:', result.message);
+        
         const processingState = document.getElementById('processing-state');
         const resultsContainer = document.getElementById('results-container');
+        
+        if (!processingState || !resultsContainer) {
+            console.error('Элементы для результатов не найдены');
+            return;
+        }
         
         processingState.style.display = 'none';
         resultsContainer.style.display = 'block';
@@ -426,21 +438,39 @@ class VideoCutterApp {
         
         // Сохраняем клипы для доступа
         this.currentClips = result.clips || [];
+        console.log('Сохранены клипы:', this.currentClips);
         
         // Показываем сообщение об успехе
-        alert(result.message);
+        if (result.message) {
+            alert(result.message);
+        }
         
         // НЕ сбрасываем автоматически - ждем действия пользователя
     }
 
     // ОТКРЫТИЕ ВИРТУАЛЬНОЙ ПАПКИ
     openClipsFolder() {
+        console.log('=== ОТКРЫТИЕ ПАПКИ С КЛИПАМИ ===');
+        console.log('this.currentClips:', this.currentClips);
+        console.log('Количество клипов:', this.currentClips.length);
+        
         const clipsFolder = document.getElementById('clips-folder');
         const clipsList = document.getElementById('clips-list');
         
+        if (!clipsFolder || !clipsList) {
+            console.error('Элементы папки клипов не найдены');
+            return;
+        }
+        
         // Переключаем видимость папки
-        if (clipsFolder.style.display === 'none') {
+        if (clipsFolder.style.display === 'none' || clipsFolder.style.display === '') {
             clipsFolder.style.display = 'block';
+            
+            if (this.currentClips.length === 0) {
+                console.log('Нет клипов для отображения');
+                clipsList.innerHTML = '<p style="color: #999;">Нет доступных клипов</p>';
+                return;
+            }
             
             // Отображаем список клипов
             clipsList.innerHTML = this.currentClips.map((clip, index) => `
@@ -459,13 +489,20 @@ class VideoCutterApp {
                     </div>
                 </div>
             `).join('');
+            
+            console.log('Список клипов отображен');
         } else {
             clipsFolder.style.display = 'none';
+            console.log('Папка клипов скрыта');
         }
     }
 
     // ПРЕДПРОСМОТР КЛИПА
     previewClip(clipUrl, index) {
+        console.log('=== ПРЕДПРОСМОТР КЛИПА ===');
+        console.log('clipUrl:', clipUrl);
+        console.log('index:', index);
+        
         const clipName = clipUrl.split('/').pop();
         
         // Создаем модальное окно для предпросмотра
@@ -475,7 +512,7 @@ class VideoCutterApp {
             <div class="preview-content">
                 <div class="preview-header">
                     <h3>Предпросмотр: ${clipName}</h3>
-                    <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">✖️</button>
+                    <button class="close-btn" onclick="this.parentElement.parentElement.remove()">✖️</button>
                 </div>
                 <div class="preview-video">
                     <video controls width="100%" height="auto" style="max-height: 400px;">
@@ -487,10 +524,15 @@ class VideoCutterApp {
         `;
         
         document.body.appendChild(modal);
+        console.log('Модальное окно предпросмотра создано');
     }
 
     // СКАЧИВАНИЕ КЛИПА
     downloadClip(clipUrl, index) {
+        console.log('=== СКАЧИВАНИЕ КЛИПА ===');
+        console.log('clipUrl:', clipUrl);
+        console.log('index:', index);
+        
         const clipName = clipUrl.split('/').pop();
         
         // Создаем временную ссылку для скачивания
@@ -502,6 +544,8 @@ class VideoCutterApp {
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
+        
+        console.log('Скачивание клипа начато:', clipName);
     }
 
     // Сброс состояния загрузки
