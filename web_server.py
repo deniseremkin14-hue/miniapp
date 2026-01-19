@@ -42,7 +42,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Подключаем статические файлы (Mini App и клипы)
+# Подключаем статические файлы (Mini App)
 app.mount("/static", StaticFiles(directory="."), name="static")
 
 @app.get("/")
@@ -123,13 +123,13 @@ async def upload_video(
         actual_clips_count = len(clips)
         logger.info(f"Создано клипов: {actual_clips_count}")
         
-        # Возвращаем информацию о клипах с ПОЛНЫМИ URL
+        # Возвращаем информацию о клипах
         return {
             "success": True,
             "message": f"Видео нарезано на {actual_clips_count} клипов",
             "clips_count": actual_clips_count,
             "duration": duration,  # Возвращаем полученную длительность
-            "clips": [f"/static/{os.path.relpath(clip, '.')}" for clip in clips]
+            "clips": [os.path.basename(clip) for clip in clips]
         }
         
     except Exception as e:
