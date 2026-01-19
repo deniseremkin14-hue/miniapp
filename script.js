@@ -114,56 +114,61 @@ class VideoCutterApp {
         console.log('Загрузка данных пользователя...');
         console.log('window.Telegram:', window.Telegram);
         
-        // Ждем загрузки скрипта Telegram
+        // Проверяем доступность Telegram WebApp API
         if (window.Telegram && window.Telegram.WebApp) {
             const tg = window.Telegram.WebApp;
             
-            // Явно инициализируем WebApp
+            // Инициализируем WebApp
             tg.ready();
             tg.expand();
             
             console.log('Telegram WebApp готов');
             console.log('initDataUnsafe:', tg.initDataUnsafe);
-            console.log('initData:', tg.initData);
             
-            // Пробуем получить данные пользователя из разных источников
+            // Получаем данные пользователя
             let user = tg.initDataUnsafe?.user;
-            
-            if (!user && tg.initData) {
-                try {
-                    // Парсим initData если есть
-                    const urlParams = new URLSearchParams(tg.initData);
-                    const userData = urlParams.get('user');
-                    if (userData) {
-                        user = JSON.parse(userData);
-                        console.log('Пользователь получен из initData:', user);
-                    }
-                } catch (e) {
-                    console.log('Ошибка парсинга initData:', e);
-                }
-            }
             
             if (user) {
                 console.log('Пользователь найден:', user);
-                
-                // Проверяем наличие фото профиля
-                if (!user.photo_url && user.id) {
-                    // Пробуем получить фото через Bot API (если есть токен)
-                    console.log('Пробуем получить фото профиля...');
-                    // В реальном приложении здесь можно сделать запрос к вашему бэкенду
-                    // для получения фото через Bot API
-                }
-                
                 this.displayUserInfo(user);
             } else {
-                console.log('Пользователь не найден');
-                // Используем демо-данные для отладки
-                this.displayUserInfo({
-                    first_name: 'Demo',
-                    last_name: 'User',
-                    username: 'demo_user',
-                    photo_url: null
-                });
+                console.log('Пользователь не найден в initDataUnsafe');
+                // Пробуем получить из initData
+                if (tg.initData) {
+                    try {
+                        const urlParams = new URLSearchParams(tg.initData);
+                        const userData = urlParams.get('user');
+                        if (userData) {
+                            user = JSON.parse(userData);
+                            console.log('Пользователь получен из initData:', user);
+                            this.displayUserInfo(user);
+                        } else {
+                            console.log('Пользователь не найден в initData');
+                            this.displayUserInfo({
+                                first_name: 'Пользователь',
+                                last_name: '',
+                                username: 'user',
+                                photo_url: null
+                            });
+                        }
+                    } catch (e) {
+                        console.log('Ошибка парсинга initData:', e);
+                        this.displayUserInfo({
+                            first_name: 'Пользователь',
+                            last_name: '',
+                            username: 'user',
+                            photo_url: null
+                        });
+                    }
+                } else {
+                    console.log('initData отсутствует');
+                    this.displayUserInfo({
+                        first_name: 'Пользователь',
+                        last_name: '',
+                        username: 'user',
+                        photo_url: null
+                    });
+                }
             }
             
             // Настраиваем тему
@@ -172,23 +177,28 @@ class VideoCutterApp {
             
         } else {
             console.log('Telegram WebApp API не доступен');
-            console.log('Ожидание загрузки скрипта...');
-            
-            // Пробуем снова через секунду
-            setTimeout(() => {
-                this.loadTelegramUser();
-            }, 1000);
+            // Используем демо-данные
+            this.displayUserInfo({
+                first_name: 'Demo',
+                last_name: 'User',
+                username: 'demo_user',
+                photo_url: null
+            });
         }
     }
 
     displayUserInfo(user) {
         console.log('Отображение пользователя:', user);
         
-        const avatar = document.querySelector('#user-avatar');
-        const name = document.querySelector('#user-name');
-        const username = document.querySelector('#user-username');
+        const avatar = document.getElementById('user-avatar');
+        const name = document.getElementById('user-name');
+        const username = document.getElementById('user-username');
         
-        console.log('Элементы найдены:', {avatar, name, username});
+        if (!avatar || !name || !username) {
+            console.error('Элементы пользователя не найдены');
+            return;
+        }
+        
         console.log('Данные пользователя:', {
             first_name: user.first_name,
             last_name: user.last_name,
@@ -197,29 +207,14 @@ class VideoCutterApp {
             id: user.id
         });
         
-        // Аватар - пробуем разные источники фото
+        // Аватар
         if (user.photo_url) {
             avatar.innerHTML = `<img src="${user.photo_url}" alt="${user.first_name}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
             console.log('Установлен аватар из photo_url:', user.photo_url);
-        } else if (user.id) {
-            // Пробуем построить URL для фото через Bot API
-            const botToken = 'YOUR_BOT_TOKEN'; // Здесь нужно будет вставить реальный токен
-            const photoUrl = `https://api.telegram.org/bot${botToken}/getUserProfilePhotos?user_id=${user.id}&limit=1`;
-            
-            // Временно используем заглушку, но логируем URL для отладки
-            console.log('URL для получения фото:', photoUrl);
-            
-            avatar.innerHTML = (user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U');
-            avatar.style.display = 'flex';
-            avatar.style.alignItems = 'center';
-            avatar.style.justifyContent = 'center';
-            avatar.style.fontSize = '20px';
-            avatar.style.fontWeight = 'bold';
-            avatar.style.background = '#333';
-            console.log('Установлена заглушка аватара (photo_url отсутствует)');
         } else {
-            // Аккуратная заглушка без аватара
-            avatar.innerHTML = (user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U');
+            // Используем первую букву имени
+            const initial = (user.first_name ? user.first_name.charAt(0).toUpperCase() : 'U');
+            avatar.textContent = initial;
             avatar.style.display = 'flex';
             avatar.style.alignItems = 'center';
             avatar.style.justifyContent = 'center';
@@ -229,9 +224,11 @@ class VideoCutterApp {
             console.log('Установлена заглушка аватара');
         }
         
-        // Имя и юзернейм
+        // Имя и фамилия
         const fullName = user.first_name + (user.last_name ? ' ' + user.last_name : '');
         name.textContent = fullName || 'Пользователь';
+        
+        // Username
         username.textContent = user.username ? '@' + user.username : '';
         
         console.log('Установлены имя и юзернейм:', {fullName, username: user.username});
@@ -239,16 +236,25 @@ class VideoCutterApp {
 
     // ОБРАБОТЧИКИ СОБЫТИЙ
     setupEventListeners() {
+        console.log('Настройка обработчиков событий...');
+        
         // CAPTCHA
-        document.getElementById('captcha-submit').addEventListener('click', () => {
-            this.handleCaptchaSubmit();
-        });
-
-        document.getElementById('captcha-input').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
+        const captchaSubmit = document.getElementById('captcha-submit');
+        const captchaInput = document.getElementById('captcha-input');
+        
+        if (captchaSubmit) {
+            captchaSubmit.addEventListener('click', () => {
                 this.handleCaptchaSubmit();
-            }
-        });
+            });
+        }
+        
+        if (captchaInput) {
+            captchaInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.handleCaptchaSubmit();
+                }
+            });
+        }
 
         // Кнопки длительности
         document.querySelectorAll('.duration-btn').forEach(btn => {
@@ -258,41 +264,48 @@ class VideoCutterApp {
         });
 
         // Кнопка открытия клипов
-        document.getElementById('open-clips-btn').addEventListener('click', () => {
-            this.openClipsFolder();
-        });
+        const openClipsBtn = document.getElementById('open-clips-btn');
+        if (openClipsBtn) {
+            openClipsBtn.addEventListener('click', () => {
+                this.openClipsFolder();
+            });
+        }
 
         // Загрузка видео
         const uploadArea = document.getElementById('upload-area');
         const videoInput = document.getElementById('video-input');
 
-        uploadArea.addEventListener('click', () => {
-            videoInput.click();
-        });
+        if (uploadArea && videoInput) {
+            uploadArea.addEventListener('click', () => {
+                videoInput.click();
+            });
 
-        videoInput.addEventListener('change', (e) => {
-            this.handleFileSelect(e.target.files[0]);
-        });
+            videoInput.addEventListener('change', (e) => {
+                this.handleFileSelect(e.target.files[0]);
+            });
 
-        // Drag & Drop
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+            // Drag & Drop
+            uploadArea.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadArea.classList.add('dragover');
+            });
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+            uploadArea.addEventListener('dragleave', () => {
+                uploadArea.classList.remove('dragover');
+            });
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                this.handleFileSelect(files[0]);
-            }
-        });
+            uploadArea.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadArea.classList.remove('dragover');
+                
+                const files = e.dataTransfer.files;
+                if (files.length > 0) {
+                    this.handleFileSelect(files[0]);
+                }
+            });
+        }
+        
+        console.log('Обработчики событий настроены');
     }
 
     // ОБРАБОТКА CAPTCHA
@@ -533,7 +546,9 @@ class VideoCutterApp {
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOM загружен, инициализация приложения...');
     window.app = new VideoCutterApp();
+    console.log('Приложение инициализировано');
 });
 
 // Поддержка Telegram WebApp
