@@ -3,6 +3,7 @@ class VideoCutterApp {
         this.currentCaptcha = '';
         this.selectedDuration = 10; // Значение по умолчанию
         this.uploadedFile = null;
+        this.currentClips = []; // Сохраняем клипы для доступа
         
         this.init();
     }
@@ -256,6 +257,11 @@ class VideoCutterApp {
             });
         });
 
+        // Кнопка открытия клипов
+        document.getElementById('open-clips-btn').addEventListener('click', () => {
+            this.openClipsFolder();
+        });
+
         // Загрузка видео
         const uploadArea = document.getElementById('upload-area');
         const videoInput = document.getElementById('video-input');
@@ -400,27 +406,13 @@ class VideoCutterApp {
     showResults(result) {
         const processingState = document.getElementById('processing-state');
         const resultsContainer = document.getElementById('results-container');
-        const clipsGrid = document.getElementById('clips-grid');
         
         processingState.style.display = 'none';
         resultsContainer.style.display = 'block';
         resultsContainer.classList.add('fade-in');
         
-        // Отображаем только реальные клипы от сервера
-        const clips = result.clips || [];
-        
-        clipsGrid.innerHTML = clips.map((clip, index) => `
-            <div class="clip-item fade-in" style="animation-delay: ${index * 0.1}s">
-                <video controls width="100%" height="auto" style="max-height: 200px;">
-                    <source src="${clip}" type="video/mp4">
-                    Ваш браузер не поддерживает видео.
-                </video>
-                <div class="clip-info">
-                    <div class="clip-name">${clip.split('/').pop()}</div>
-                    <div class="clip-duration">Клип ${index + 1}</div>
-                </div>
-            </div>
-        `).join('');
+        // Сохраняем клипы для доступа
+        this.currentClips = result.clips || [];
         
         // Показываем сообщение об успехе
         alert(result.message);
@@ -428,15 +420,91 @@ class VideoCutterApp {
         // НЕ сбрасываем автоматически - ждем действия пользователя
     }
 
+    // ОТКРЫТИЕ ВИРТУАЛЬНОЙ ПАПКИ
+    openClipsFolder() {
+        const clipsFolder = document.getElementById('clips-folder');
+        const clipsList = document.getElementById('clips-list');
+        
+        // Переключаем видимость папки
+        if (clipsFolder.style.display === 'none') {
+            clipsFolder.style.display = 'block';
+            
+            // Отображаем список клипов
+            clipsList.innerHTML = this.currentClips.map((clip, index) => `
+                <div class="clip-item-list">
+                    <div class="clip-info-list">
+                        <span class="clip-name-list">📹 ${clip.split('/').pop()}</span>
+                        <span class="clip-index">Клип ${index + 1}</span>
+                    </div>
+                    <div class="clip-actions">
+                        <button class="preview-btn" onclick="app.previewClip('${clip}', ${index})">
+                            👁️ Предпросмотр
+                        </button>
+                        <button class="download-btn" onclick="app.downloadClip('${clip}', ${index})">
+                            ⬇️ Скачать
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } else {
+            clipsFolder.style.display = 'none';
+        }
+    }
+
+    // ПРЕДПРОСМОТР КЛИПА
+    previewClip(clipUrl, index) {
+        const clipName = clipUrl.split('/').pop();
+        
+        // Создаем модальное окно для предпросмотра
+        const modal = document.createElement('div');
+        modal.className = 'preview-modal';
+        modal.innerHTML = `
+            <div class="preview-content">
+                <div class="preview-header">
+                    <h3>Предпросмотр: ${clipName}</h3>
+                    <button class="close-btn" onclick="this.parentElement.parentElement.parentElement.remove()">✖️</button>
+                </div>
+                <div class="preview-video">
+                    <video controls width="100%" height="auto" style="max-height: 400px;">
+                        <source src="${clipUrl}" type="video/mp4">
+                        Ваш браузер не поддерживает видео.
+                    </video>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+
+    // СКАЧИВАНИЕ КЛИПА
+    downloadClip(clipUrl, index) {
+        const clipName = clipUrl.split('/').pop();
+        
+        // Создаем временную ссылку для скачивания
+        const link = document.createElement('a');
+        link.href = clipUrl;
+        link.download = clipName;
+        link.style.display = 'none';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     // Сброс состояния загрузки
     resetUploadState() {
         const uploadArea = document.getElementById('upload-area');
         const processingState = document.getElementById('processing-state');
         const resultsContainer = document.getElementById('results-container');
+        const clipsFolder = document.getElementById('clips-folder');
         
         uploadArea.style.display = 'flex';
         processingState.style.display = 'none';
         resultsContainer.style.display = 'none';
+        clipsFolder.style.display = 'none'; // Скрываем папку клипов
+        
+        // Очищаем клипы
+        this.currentClips = [];
     }
 
     // Полный сброс в начальное состояние
@@ -465,7 +533,7 @@ class VideoCutterApp {
 
 // Инициализация приложения
 document.addEventListener('DOMContentLoaded', () => {
-    new VideoCutterApp();
+    window.app = new VideoCutterApp();
 });
 
 // Поддержка Telegram WebApp

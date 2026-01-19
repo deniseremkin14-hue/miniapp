@@ -308,7 +308,6 @@ body {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 20px;
-    text-align: center;
 }
 
 .clips-grid {
@@ -344,6 +343,150 @@ body {
 .clip-duration {
     font-size: 12px;
     opacity: 0.7;
+}
+
+.open-clips-btn {
+    background: linear-gradient(135deg, #FFD700, #FFA500);
+    color: #000000;
+    border: none;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    margin: 20px 0;
+    transition: all 0.3s ease;
+}
+
+.open-clips-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(255, 215, 0, 0.3);
+}
+
+/* ВИРТУАЛЬНАЯ ПАПКА */
+#clips-folder {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    border-radius: 12px;
+    margin-top: 20px;
+    padding: 20px;
+    text-align: left;
+}
+
+#clips-folder h4 {
+    color: #FFD700;
+    margin-bottom: 20px;
+    font-size: 18px;
+}
+
+.clips-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.clip-item-list {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.clip-item-list:hover {
+    background: #333;
+    border-color: #FFD700;
+}
+
+.clip-info-list {
+    flex: 1;
+}
+
+.clip-name-list {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: #ffffff;
+}
+
+.clip-index {
+    font-size: 14px;
+    color: #999;
+}
+
+.clip-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.preview-btn, .download-btn {
+    background: #FFD700;
+    color: #000000;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.preview-btn:hover, .download-btn:hover {
+    background: #FFA500;
+    transform: translateY(-1px);
+}
+
+/* МОДАЛЬНОЕ ОКНО ПРЕДПРОСМОТРА */
+.preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.preview-content {
+    background: #1a1a1a;
+    border: 2px solid #FFD700;
+    border-radius: 12px;
+    max-width: 90%;
+    max-height: 90%;
+    overflow: auto;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    border-bottom: 1px solid #333;
+}
+
+.preview-header h3 {
+    margin: 0;
+    color: #FFD700;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.preview-video {
+    padding: 20px;
+    text-align: center;
 }
 
 /* МОБИЛЬНАЯ АДАПТАЦИЯ */
