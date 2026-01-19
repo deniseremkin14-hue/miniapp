@@ -322,7 +322,8 @@ class VideoCutterApp {
         const durationValue = parseInt(btn.dataset.duration);
         this.selectedDuration = durationValue;
         
-        console.log(`Выбрана длительность клипа: ${durationValue} секунд`);
+        console.log(`ВЫБРАНА ДЛИТЕЛЬНОСТЬ: ${durationValue} секунд`);
+        console.log(`this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
         
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
@@ -353,14 +354,18 @@ class VideoCutterApp {
         // Гарантируем минимальную проверку
         if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
             this.selectedDuration = 10; // Финальная защита
-            console.log(`Финальная защита: установлена длительность ${this.selectedDuration} секунд`);
+            console.log(`ФИНАЛЬНАЯ ЗАЩИТА: установлена длительность ${this.selectedDuration} секунд`);
         }
+
+        console.log(`=== ОТПРАВКА ЗАПРОСА ===`);
+        console.log(`this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
 
         const formData = new FormData();
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
 
-        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд (тип: ${typeof this.selectedDuration})`);
+        console.log(`FormData.append("duration", ${this.selectedDuration}) выполнено`);
+        console.log(`FormData.has("duration"): ${formData.has("duration")}`);
 
         try {
             const response = await fetch('/upload-video', {
@@ -396,42 +401,166 @@ class VideoCutterApp {
         processingState.classList.add('fade-in');
     }
 
-    // РЕЗУЛЬТАТ
-    showResults(result) {
-        const processingState = document.getElementById('processing-state');
-        const resultsContainer = document.getElementById('results-container');
-        const clipsGrid = document.getElementById('clips-grid');
+// ОБРАБОТКА CAPTCHA
+handleCaptchaSubmit() {
+    const input = document.getElementById('captcha-input');
+    const error = document.getElementById('captcha-error');
+    
+    if (this.verifyCaptcha(input.value)) {
+        this.switchToMainScreen();
+    } else {
+        error.textContent = 'Попробуй ввести капчу заново';
+        input.value = '';
+        this.displayCaptcha();
         
-        processingState.style.display = 'none';
-        resultsContainer.style.display = 'block';
-        resultsContainer.classList.add('fade-in');
-        
-        // Отображаем только реальные клипы от сервера
-        const clips = result.clips || [];
-        
-        clipsGrid.innerHTML = clips.map((clip, index) => `
-            <div class="clip-item fade-in" style="animation-delay: ${index * 0.1}s">
-                <div class="clip-info">
-                    <div class="clip-name">${clip}</div>
-                    <div class="clip-duration">Клип ${index + 1}</div>
-                </div>
-            </div>
-        `).join('');
-        
-        // Показываем сообщение об успехе
-        alert(result.message);
+        setTimeout(() => {
+            error.textContent = '';
+        }, 3000);
+    }
+}
+
+switchToMainScreen() {
+    document.getElementById('captcha-screen').classList.remove('active');
+    document.getElementById('main-screen').classList.add('active');
+    document.getElementById('main-screen').classList.add('fade-in');
+}
+
+// ВЫБОР ДЛИТЕЛЬНОСТИ
+selectDuration(btn) {
+    document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    
+    // Гарантируем, что значение является числом
+    const durationValue = parseInt(btn.dataset.duration);
+    this.selectedDuration = durationValue;
+    
+    console.log(`ВЫБРАНА ДЛИТЕЛЬНОСТЬ: ${durationValue} секунд`);
+    console.log(`this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
+    
+    // Показываем область загрузки
+    document.getElementById('upload-container').classList.add('slide-up');
+}
+
+// ОБРАБОТКА ФАЙЛА
+handleFileSelect(file) {
+    if (!file || !file.type.startsWith('video/')) {
+        alert('Пожалуйста, выберите видеофайл');
+        return;
     }
 
-    // Сброс состояния загрузки
-    resetUploadState() {
-        const uploadArea = document.getElementById('upload-area');
-        const processingState = document.getElementById('processing-state');
-        const resultsContainer = document.getElementById('results-container');
-        
-        uploadArea.style.display = 'flex';
-        processingState.style.display = 'none';
-        resultsContainer.style.display = 'none';
+    // Гарантируем, что duration всегда имеет значение (по умолчанию 10)
+    if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
+        this.selectedDuration = 10; // Значение по умолчанию
+        console.log(`Используем длительность по умолчанию: ${this.selectedDuration} секунд`);
     }
+
+    this.uploadedFile = file;
+    this.showProcessingState();
+    
+    // Отправляем видео на сервер для нарезки
+    this.uploadVideo(file);
+}
+
+// ЗАГРУЗКА ВИДЕО НА СЕРВЕР
+async uploadVideo(file) {
+    // Гарантируем минимальную проверку
+    if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
+        this.selectedDuration = 10; // Финальная защита
+        console.log(`ФИНАЛЬНАЯ ЗАЩИТА: установлена длительность ${this.selectedDuration} секунд`);
+    }
+
+    console.log(`=== ОТПРАВКА ЗАПРОСА ===`);
+    console.log(`this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('duration', this.selectedDuration);
+
+    console.log(`FormData.append("duration", ${this.selectedDuration}) выполнено`);
+    console.log(`FormData.has("duration"): ${formData.has("duration")}`);
+
+    try {
+        const response = await fetch('/upload-video', {
+            method: 'POST',
+            body: formData
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.success) {
+            this.showResults(result);
+        } else {
+            throw new Error(result.message || 'Ошибка обработки видео');
+        }
+    } catch (error) {
+        console.error('Ошибка загрузки видео:', error);
+        alert('Ошибка при загрузке видео: ' + error.message);
+        this.resetUploadState();
+    }
+}
+
+// СОСТОЯНИЕ ОБРАБОТКИ
+showProcessingState() {
+    const uploadArea = document.getElementById('upload-area');
+    const processingState = document.getElementById('processing-state');
+    
+    uploadArea.style.display = 'none';
+    processingState.style.display = 'block';
+    processingState.classList.add('fade-in');
+}
+
+// РЕЗУЛЬТАТ
+showResults(result) {
+    console.log('=== ПОЛУЧЕН РЕЗУЛЬТАТ ОТ СЕРВЕРА ===');
+    console.log('result:', result);
+    console.log('clips:', result.clips);
+    console.log('clips_count:', result.clips_count);
+    console.log('duration:', result.duration);
+
+    // Скрываем состояние обработки
+    document.getElementById('processing-state').style.display = 'none';
+
+    // Показываем контейнер с результатами
+    const resultsContainer = document.getElementById('results-container');
+    resultsContainer.style.display = 'block';
+
+    // Отображаем клипы
+    const clipsGrid = document.getElementById('clips-grid');
+    clipsGrid.innerHTML = '';
+
+    // Используем только реальные клипы от сервера
+    result.clips.forEach((clipUrl, index) => {
+        const clipElement = document.createElement('div');
+        clipElement.className = 'clip-item';
+        clipElement.innerHTML = `
+            <video controls width="100%" height="auto">
+                <source src="${clipUrl}" type="video/mp4">
+                Ваш браузер не поддерживает видео.
+            </video>
+            <div class="clip-info">
+                <span>Клип ${index + 1}</span>
+            </div>
+        `;
+        clipsGrid.appendChild(clipElement);
+    });
+
+    // Показываем кнопку "Нарезать еще"
+    document.getElementById('cut-another-btn').style.display = 'block';
+}
+
+// Сброс состояния загрузки
+resetUploadState() {
+    const uploadArea = document.getElementById('upload-area');
+    const processingState = document.getElementById('processing-state');
+    const resultsContainer = document.getElementById('results-container');
+    
+    uploadArea.style.display = 'flex';
+    processingState.style.display = 'none';
+    resultsContainer.style.display = 'none';
 }
 
 // Инициализация приложения
