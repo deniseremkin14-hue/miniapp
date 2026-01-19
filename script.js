@@ -351,17 +351,13 @@ class VideoCutterApp {
 
     // ЗАГРУЗКА ВИДЕО НА СЕРВЕР
     async uploadVideo(file) {
-        // Гарантируем минимальную проверку
-        if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
-            this.selectedDuration = 10; // Финальная защита
-            console.log(`Финальная защита: установлена длительность ${this.selectedDuration} секунд`);
-        }
+        console.log(`ОТПРАВКА: this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
 
         const formData = new FormData();
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
 
-        console.log(`Отправка видео: длительность клипа = ${this.selectedDuration} секунд (тип: ${typeof this.selectedDuration})`);
+        console.log(`FormData содержит duration: ${formData.has('duration')}`);
 
         try {
             const response = await fetch('/upload-video', {
