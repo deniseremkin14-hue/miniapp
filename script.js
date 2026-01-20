@@ -1,8 +1,9 @@
 class VideoCutterApp {
     constructor() {
         this.currentCaptcha = '';
-        this.selectedDuration = null;
+        this.selectedDuration = 10; // Значение по умолчанию
         this.uploadedFile = null;
+        
         this.init();
     }
 
@@ -316,12 +317,19 @@ class VideoCutterApp {
     selectDuration(btn) {
         document.querySelectorAll('.duration-btn').forEach(b => b.classList.remove('selected'));
         btn.classList.add('selected');
-        this.selectedDuration = parseInt(btn.dataset.duration);
         
-        console.log(`Выбрана длительность: ${this.selectedDuration} секунд`);
+        // Гарантируем, что значение является числом
+        const durationValue = parseInt(btn.dataset.duration);
+        this.selectedDuration = durationValue;
+        
+        console.log(`ВЫБРАНА ДЛИТЕЛЬНОСТЬ: ${durationValue} секунд`);
+        console.log(`this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
         
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
+        
+        // Если были предыдущие результаты, скрываем их для нового выбора
+        this.resetUploadState();
     }
 
     // ОБРАБОТКА ФАЙЛА
@@ -331,9 +339,10 @@ class VideoCutterApp {
             return;
         }
 
-        if (this.selectedDuration === null) {
-            alert('Сначала выберите длительность клипов');
-            return;
+        // Гарантируем, что duration всегда имеет значение (по умолчанию 10)
+        if (!this.selectedDuration || typeof this.selectedDuration !== 'number' || this.selectedDuration <= 0) {
+            this.selectedDuration = 10; // Значение по умолчанию
+            console.log(`Используем длительность по умолчанию: ${this.selectedDuration} секунд`);
         }
 
         this.uploadedFile = file;
@@ -345,14 +354,13 @@ class VideoCutterApp {
 
     // ЗАГРУЗКА ВИДЕО НА СЕРВЕР
     async uploadVideo(file) {
+        console.log(`ОТПРАВКА: this.selectedDuration = ${this.selectedDuration} (тип: ${typeof this.selectedDuration})`);
+
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('duration', String(this.selectedDuration));
+        formData.append('duration', this.selectedDuration);
 
-        console.log('FormData проверка:');
-        for (let [key, value] of formData.entries()) {
-            console.log(`${key}: ${value} (тип: ${typeof value})`);
-        }
+        console.log(`FormData содержит duration: ${formData.has('duration')}`);
 
         try {
             const response = await fetch('/upload-video', {
@@ -374,7 +382,7 @@ class VideoCutterApp {
         } catch (error) {
             console.error('Ошибка загрузки видео:', error);
             alert('Ошибка при загрузке видео: ' + error.message);
-            this.resetUploadState();
+            this.resetToInitialState(); // Сброс и при ошибке
         }
     }
 
@@ -403,8 +411,12 @@ class VideoCutterApp {
         
         clipsGrid.innerHTML = clips.map((clip, index) => `
             <div class="clip-item fade-in" style="animation-delay: ${index * 0.1}s">
+                <video controls width="100%" height="auto" style="max-height: 200px;">
+                    <source src="${clip}" type="video/mp4">
+                    Ваш браузер не поддерживает видео.
+                </video>
                 <div class="clip-info">
-                    <div class="clip-name">${clip}</div>
+                    <div class="clip-name">${clip.split('/').pop()}</div>
                     <div class="clip-duration">Клип ${index + 1}</div>
                 </div>
             </div>
@@ -412,6 +424,9 @@ class VideoCutterApp {
         
         // Показываем сообщение об успехе
         alert(result.message);
+        
+        // Автоматически сбрасываем состояние для следующего видео
+        this.resetToInitialState();
     }
 
     // Сброс состояния загрузки
@@ -423,6 +438,29 @@ class VideoCutterApp {
         uploadArea.style.display = 'flex';
         processingState.style.display = 'none';
         resultsContainer.style.display = 'none';
+    }
+
+    // Полный сброс в начальное состояние
+    resetToInitialState() {
+        // Скрываем все экраны результатов
+        this.resetUploadState();
+        
+        // Очищаем предыдущие клипы
+        const clipsGrid = document.getElementById('clips-grid');
+        clipsGrid.innerHTML = '';
+        
+        // Очищаем файловый инпут
+        const videoInput = document.getElementById('video-input');
+        videoInput.value = '';
+        
+        // НЕ сбрасываем выбранную длительность - пользователь может выбрать новую
+        // Кнопки остаются активными для нового выбора
+        
+        // Показываем область выбора длительности (если была скрыта)
+        const uploadContainer = document.getElementById('upload-container');
+        if (uploadContainer) {
+            uploadContainer.classList.remove('slide-up');
+        }
     }
 }
 
