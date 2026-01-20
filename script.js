@@ -346,7 +346,7 @@ class VideoCutterApp {
     // ЗАГРУЗКА ВИДЕО НА СЕРВЕР
     async uploadVideo(file) {
         const formData = new FormData();
-        formData.append('file', file);
+        formData.append('video', file);
         formData.append('duration', String(this.selectedDuration));
 
         console.log('FormData проверка:');
