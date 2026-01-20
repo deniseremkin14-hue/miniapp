@@ -347,7 +347,7 @@ class VideoCutterApp {
     async uploadVideo(file) {
         const formData = new FormData();
         formData.append('file', file);
-        formData.append('duration', this.selectedDuration);
+        formData.append('duration', String(this.selectedDuration));
 
         console.log('FormData проверка:');
         for (let [key, value] of formData.entries()) {
