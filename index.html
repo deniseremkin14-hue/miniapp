@@ -22,54 +22,48 @@
     </div>
 
     <!-- ОСНОВНОЙ ЭКРАН -->
-    <div class="main-screen" id="main-screen">
-        <!-- ИНФОРМАЦИЯ О ПОЛЬЗОВАТЕЛЕ -->
-        <div class="user-info" id="user-info">
-            <div class="user-avatar" id="user-avatar">
-                <img id="user-avatar-img" src="" alt="" style="display: none;">
-                <div class="user-avatar-placeholder" id="user-avatar-placeholder">👤</div>
-            </div>
+    <div id="main-screen" class="screen">
+        <!-- АККАУНТ ПОЛЬЗОВАТЕЛЯ -->
+        <div class="user-info">
+            <div class="user-avatar" id="user-avatar"></div>
             <div class="user-details">
-                <div class="user-name" id="user-name">Загрузка...</div>
-                <div class="user-username" id="user-username">@username</div>
+                <div class="user-name" id="user-name"></div>
+                <div class="user-username" id="user-username"></div>
             </div>
         </div>
 
-        <h1 class="main-title">🎬 Нарезка видео<br>на короткие клипы</h1>
+        <!-- ОСНОВНОЙ КОНТЕНТ -->
+        <div class="container">
+            <h1 class="main-title">Выбери временной диапазон, из которого будут состоять клипы</h1>
+            
+            <!-- КНОПКИ ВЫБОРА ДЛИТЕЛЬНОСТИ -->
+            <div class="duration-buttons">
+                <button class="duration-btn" data-duration="10">10 секунд</button>
+                <button class="duration-btn" data-duration="20">20 секунд</button>
+                <button class="duration-btn" data-duration="30">30 секунд</button>
+            </div>
 
-        <!-- КНОПКИ ДЛИТЕЛЬНОСТИ -->
-        <div class="duration-buttons">
-            <button class="duration-btn" data-duration="10">10 секунд</button>
-            <button class="duration-btn" data-duration="20">20 секунд</button>
-            <button class="duration-btn" data-duration="30">30 секунд</button>
-        </div>
-
-        <!-- ОБЛАСТЬ ЗАГРУЗКИ -->
-        <div class="upload-container" id="upload-container">
-            <div class="upload-area" id="upload-area">
-                <div class="upload-content">
-                    <div class="upload-icon">📹</div>
-                    <p class="upload-text">Нажми, чтобы выбрать видео</p>
-                    <p class="upload-hint">или перетащи файл сюда</p>
+            <!-- ОБЛАСТЬ ЗАГРУЗКИ ВИДЕО -->
+            <div class="upload-container" id="upload-container">
+                <div class="upload-area" id="upload-area">
+                    <div class="upload-content">
+                        <div class="upload-icon">📹</div>
+                        <p class="upload-text">Нажми, чтобы выбрать видео</p>
+                        <p class="upload-hint">или перетащи файл сюда</p>
+                    </div>
+                    <input type="file" id="video-input" accept="video/*" style="display: none;">
                 </div>
-                <input type="file" id="video-input" accept="video/*" style="display: none;">
-            </div>
 
-            <!-- СОСТОЯНИЕ ОБРАБОТКИ -->
-            <div class="processing-state" id="processing-state" style="display: none;">
-                <div class="loading-spinner"></div>
-                <p class="processing-text">Подожди, клипы нарезаются</p>
-            </div>
+                <!-- СОСТОЯНИЕ ОБРАБОТКИ -->
+                <div class="processing-state" id="processing-state" style="display: none;">
+                    <div class="loading-spinner"></div>
+                    <p class="processing-text">Подожди, клипы нарезаются</p>
+                </div>
 
-            <!-- РЕЗУЛЬТАТ -->
-            <div class="results-container" id="results-container" style="display: none;">
-                <h3>Видео нарезано!</h3>
-                <button id="open-clips-btn" class="open-clips-btn">📂 Открыть клипы</button>
-                
-                <!-- ВИРТУАЛЬНАЯ ПАПКА С КЛИПАМИ -->
-                <div id="clips-folder" style="display: none;">
-                    <h4>📁 Ваши клипы</h4>
-                    <div class="clips-list" id="clips-list"></div>
+                <!-- РЕЗУЛЬТАТ -->
+                <div class="results-container" id="results-container" style="display: none;">
+                    <h3>Готовые клипы</h3>
+                    <div class="clips-grid" id="clips-grid"></div>
                 </div>
             </div>
         </div>
