@@ -3,7 +3,6 @@ class VideoCutterApp {
         this.currentCaptcha = '';
         this.selectedDuration = null;
         this.uploadedFile = null;
-        
         this.init();
     }
 
@@ -332,7 +331,7 @@ class VideoCutterApp {
             return;
         }
 
-        if (!this.selectedDuration) {
+        if (this.selectedDuration === null) {
             alert('Сначала выберите длительность клипов');
             return;
         }
@@ -349,6 +348,11 @@ class VideoCutterApp {
         const formData = new FormData();
         formData.append('file', file);
         formData.append('duration', this.selectedDuration);
+
+        console.log('FormData проверка:');
+        for (let [key, value] of formData.entries()) {
+            console.log(`${key}: ${value} (тип: ${typeof value})`);
+        }
 
         try {
             const response = await fetch('/upload-video', {
