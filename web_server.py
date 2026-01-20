@@ -56,16 +56,22 @@ async def mini_app():
 @app.post("/upload-video")
 async def upload_video(
     file: UploadFile = File(...),
-    duration: int = 30
+    duration: int = None
 ):
     """Загрузка видео и нарезка на клипы"""
     
     logger.info(f"Получен запрос на загрузку видео: {file.filename}")
+    logger.info(f"Получен duration: {duration} (тип: {type(duration)})")
     
     # Проверка типа файла
     if not file.content_type.startswith('video/'):
         logger.error(f"Неверный тип файла: {file.content_type}")
         raise HTTPException(status_code=400, detail="Файл должен быть видео")
+    
+    # Проверяем, что duration получен
+    if duration is None:
+        logger.error("Duration не получен от клиента")
+        raise HTTPException(status_code=400, detail="Параметр duration обязателен")
     
     # Очищаем старые файлы
     cleanup_old_files()

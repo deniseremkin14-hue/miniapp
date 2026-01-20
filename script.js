@@ -319,6 +319,8 @@ class VideoCutterApp {
         btn.classList.add('selected');
         this.selectedDuration = parseInt(btn.dataset.duration);
         
+        console.log(`Выбрана длительность: ${this.selectedDuration} секунд`);
+        
         // Показываем область загрузки
         document.getElementById('upload-container').classList.add('slide-up');
     }
